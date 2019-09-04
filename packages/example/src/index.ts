@@ -29,13 +29,12 @@ console.log(
 
 // Function Composition with `pipe` and `flow`
 
-namespace Composition {
-  export const usingPipe = pipe(
-    1,
-    x => x - 4,
-    Add.curried(5),
-    Add.three
-  );
+namespace WordCount {
+  export const usingPipe = (text: string): number =>
+    pipe(
+      text.split(" "),
+      words => words.length
+    );
 
   export const usingFlow: (text: string) => number = flow(
     text => text.split(" "),
@@ -43,35 +42,30 @@ namespace Composition {
   );
 }
 
-console.log("2. ", Composition.usingPipe, "===", 5, "\n");
-console.log("3. ", Composition.usingFlow("Three words long"), "===", 3, "\n");
+console.log("2. ", WordCount.usingPipe("Four words are here"), "===", 4, "\n");
+console.log("3. ", WordCount.usingFlow("Three words long"), "===", 3, "\n");
 
-// Handling nullability with `Option`
+// Handling Nullability with `Option`
 
-namespace Nullability {
-  const addThree = (x: Option.Option<number>): Option.Option<number> =>
+namespace Nullable {
+  export const addThree = (x?: number): Option.Option<number> =>
     pipe(
-      x,
+      Option.fromNullable(x),
       Option.map(Add.three)
     );
-
-  export const some = Option.some(5);
-  export const someMore = addThree(some);
-
-  export const none = Option.fromNullable(null);
-  export const noneMore = addThree(some);
-
-  export const numbers = [1, 2, 3, 4, 5];
 }
 
-console.log("4.", Nullability.someMore, "===", Option.some(8), "\n");
-console.log("5.", Nullability.noneMore, "===", Option.none, "\n");
-console.log("6. ", Nullability.numbers[6] + 4, "===", NaN, "\n");
+console.log("4.", Nullable.addThree(5), "===", Option.some(8), "\n");
+
+console.log("5.", Nullable.addThree(), "===", Option.none, "\n");
+
+const lie = [1, 2, 3, 4, 5][6];
+console.log("6. ", lie + 4, "===", NaN, "\n");
 
 console.log(
   "7. ",
   pipe(
-    Array.lookup(200, Nullability.numbers),
+    Array.lookup(200, [1, 2, 3, 4, 5]),
     Option.getOrElse(() => 0),
     x => x + 4
   ),
@@ -83,8 +77,9 @@ console.log(
 console.log(
   "8.",
   pipe(
-    Array.lookup(2, Nullability.numbers),
-    Option.map(x => x + 4)
+    Array.lookup(2, [1, 2, 3, 4, 5]),
+    Option.map(x => x + 4),
+    Option.getOrElse(() => 0)
   ),
   "===",
   Option.some(7),
