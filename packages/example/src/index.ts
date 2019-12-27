@@ -1,7 +1,7 @@
 import {
-  Array,
   Either,
   flow,
+  List,
   Option,
   pipe,
   TaskEither
@@ -31,10 +31,7 @@ console.log(
 
 namespace WordCount {
   export const usingPipe = (text: string): number =>
-    pipe(
-      text.split(" "),
-      words => words.length
-    );
+    pipe(text.split(" "), words => words.length);
 
   export const usingFlow: (text: string) => number = flow(
     text => text.split(" "),
@@ -48,43 +45,33 @@ console.log("3. ", WordCount.usingFlow("Three words long"), "===", 3, "\n");
 // Handling Nullability with `Option`
 
 namespace Nullable {
-  export const addThree = (x?: number): Option.Option<number> =>
-    pipe(
-      Option.fromNullable(x),
-      Option.map(Add.three)
-    );
+  export const addThree = (
+    x?: Option.Nullable<number>
+  ): Option.Option<number> =>
+    pipe(Option.fromNullable(x), Option.map(Add.three));
 }
 
 console.log("4.", Nullable.addThree(5), "===", Option.some(8), "\n");
-
 console.log("5.", Nullable.addThree(), "===", Option.none, "\n");
 
 const lie = [1, 2, 3, 4, 5][6];
 console.log("6. ", lie + 4, "===", NaN, "\n");
 
-console.log(
-  "7. ",
-  pipe(
-    Array.lookup(200, [1, 2, 3, 4, 5]),
-    Option.getOrElse(() => 0),
-    x => x + 4
-  ),
-  "===",
-  4,
-  "\n"
+const elementIsMissing = pipe(
+  List.lookup(200, [1, 2, 3, 4, 5]),
+  Option.getOrElse(() => 0),
+  x => x + 4
 );
 
-console.log(
-  "8.",
-  pipe(
-    Array.lookup(2, [1, 2, 3, 4, 5]),
-    Option.map(x => x + 4),
-    Option.getOrElse(() => 0)
-  ),
-  "===",
-  Option.some(7),
-  "\n"
+console.log("7. ", elementIsMissing, "===", 4, "\n");
+
+const elementExists = pipe(
+  List.lookup(2, [1, 2, 3, 4, 5]),
+  Option.map(x => x + 4),
+  Option.getOrElse(() => 0)
 );
+
+console.log("8.", elementExists, "===", 7, "\n");
 
 // Handling failure with `Either`
 
@@ -97,8 +84,9 @@ namespace Failure {
   }
 
   export namespace ErrorOrNumber {
-    export type ErrorOrNumber = Either.Either<Error, number> &
-      Either.ErrorOr<number>;
+    export type ErrorOrNumber =
+      | Either.Either<Error, number> // Same as below
+      | Either.ErrorOr<number>; // Same as above
 
     export const left: ErrorOrNumber = Either.left(Error("Yikes!"));
     export const right: ErrorOrNumber = Either.right(42);
@@ -152,30 +140,28 @@ namespace NightClub {
       Either.map(instruction)
     );
 
-  const isOldEnough = (patron: Patron): Either.Either<number, Patron> =>
-    pipe(
-      patron,
-      ({ age }) => 21 - age,
-      yearsUntilLegal =>
-        yearsUntilLegal > 0
-          ? Either.left(yearsUntilLegal)
-          : Either.right(patron)
-    );
+  const isOldEnough = (patron: Patron): Either.Either<number, Patron> => {
+    const yearsUntilLegal = 21 - patron.age;
+    return yearsUntilLegal > 0
+      ? Either.left(yearsUntilLegal)
+      : Either.right(patron);
+  };
 
-  const isBlacklisted = (patron: Patron): Either.ErrorOr<Patron> =>
-    pipe(
-      patron,
-      Either.fromPredicate(
-        ({ name }) => !["Andy", "Todd"].includes(name),
-        () => Error("Who do you think you are?")
-      )
-    );
+  const isBlacklisted: (
+    patron: Patron
+  ) => Either.ErrorOr<Patron> = Either.fromPredicate(
+    ({ name }) => !["Andy", "Todd"].includes(name),
+    () => Error("Who do you think you are?")
+  );
 
   const instruction = (patron: Patron): Instruction =>
     pipe(
       timeLeftAsVIP(patron),
       Option.chain(Option.fromPredicate(timeLeftAsVIP => timeLeftAsVIP > 0)),
-      Option.fold(() => "Here's the line...", () => "Time to party!")
+      Option.fold(
+        () => "Here's the line...",
+        () => "Time to party!"
+      )
     );
 
   const timeLeftAsVIP = (patron: Patron): Option.Option<number> =>
@@ -260,8 +246,8 @@ namespace RussianRoulette {
 
   loser = await pipe(
     ["Conner", "Brian", "Andy"],
-    Array.map(RussianRoulette.safe),
-    Array.array.sequence(TaskEither.taskEither),
+    List.map(RussianRoulette.safe),
+    List.array.sequence(TaskEither.taskEither),
     TaskEither.map(() => "Nobody dies!")
   )();
 
