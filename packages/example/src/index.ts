@@ -1,11 +1,4 @@
-import {
-  Either,
-  flow,
-  List,
-  Option,
-  pipe,
-  TaskEither
-} from "@grapheng/prelude";
+import { Either, flow, List, Option, pipe, TaskEither } from "@morphism/fp";
 
 // tslint:disable no-unused-expression
 

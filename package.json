@@ -27,6 +27,8 @@
     "example:build": "tst build example"
   },
   "dependencies": {
-    "@grapheng/prelude": "^12.0.0"
+    "fp-ts": "^2.5.3",
+    "io-ts": "^2.1.2",
+    "@morphism/fp": "0.0.1-alpha.2"
   }
 }
